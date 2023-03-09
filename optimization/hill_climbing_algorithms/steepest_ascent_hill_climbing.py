@@ -18,9 +18,9 @@ class SteepestAscentHillClimbing:
 
     def run(self):
         for i in range(self.iteration):
-            fit = self.fitness(R1=self.x0)
+            fit = self.fitness(R2_out=self.x0)
             xq = self.mutation(self.x0)
-            fit_xq = self.fitness(R1=xq)
+            fit_xq = self.fitness(R2_out=xq)
             if fit_xq >= fit:
                 self.good_mutation.append((xq, fit_xq))
                 self.x0 = xq
