@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from main_function import *
 
 
-def debug(ro, m_max, m_min, m=None, title=""):
+def debug(ro, m_max, m_min, m=None, title=None):
     plt.xlabel("ro, м")
     plt.ylabel("M, Гн")
     plt.plot(ro, m_max * np.ones(ro.shape), "k--", )
@@ -12,7 +12,8 @@ def debug(ro, m_max, m_min, m=None, title=""):
     if m is not None:
         plt.plot(ro, m, label="Оптимизированный случай")
     plt.grid()
-    plt.title(title)
+    if title is not None:
+        plt.title(title)
     plt.legend(loc="best")
     plt.show()
 
@@ -88,7 +89,7 @@ def main():
     # Step 6. Calculation of r in_t and r in_t
     a = 1e-3
     b = r_out_r - (k_r - 1) * a
-    eps = 1e-3
+    eps = 1e-4
 
     while(b - a) >= eps:
         x1 = (a + b - eps) / 2
@@ -129,6 +130,7 @@ def main():
 
     print(f"Calculated values of internal radii:\n r_in_t={r_in_t} м\n r_in_r={r_in_r} м\n")
 
+    flag = True
     while np.min(m) < m_min or np.max(m) > m_max:
 
         # Step 8. Calculation r out_t max
@@ -136,7 +138,8 @@ def main():
         m_prev = 0
 
         while np.min(m) < m_min:
-            r_max_t += r_turn
+            # r_max_t += r_turn
+            r_max_t += r_out_t
             m = np.min(mutual_inductance(
                 coil_1=np.linspace(r_in_r, r_max_t, n_t),
                 coil_2=np.linspace(r_in_t, r_out_r, k_r),
@@ -148,7 +151,9 @@ def main():
             else:
                 if np.min(m) < m_min:
                     n_t += 1
+                    print(f"Changed count of turn n_t={n_t}")
                     r_max_t = r_out_t
+        print("Finish step 8.")
 
         print(f"Calculated values of r_out_t max = {r_max_t} м\n")
 
@@ -194,7 +199,9 @@ def main():
             coil_2=np.linspace(r_in_r, r_out_r, k_r),
             d=d, ro=ro
         )
-        print(f"Calculated values of r_out_t={r_out_t}\n")
+
+        print("Finish step 9.")
+        print(f"Calculated values of r_out_t={r_out_t} м\n")
         debug(
             ro=ro, m_max=m_max,
             m_min=m_min,
@@ -204,66 +211,92 @@ def main():
         # check if procedure optimization is possible
         if n_t > (r_out_t - r_turn) / r_turn:
             print("Process terminated. Geometric optimization coil is impossible. Break 1")
+            flag = False
             break
 
+        while True:
+            # Step 10. Recalculation of r_in_t and r_int_r
+            a_t = r_turn
+            b_t = r_out_t - a_t
 
+            a_r = r_turn
+            b_r = r_out_r - a_r
 
-        # Step 10. Recalculation of r_in_t and r_int_r
-        a_t = r_turn
-        b_t = r_out_t - a_t
+            while np.abs(a_t - b_t) >= eps and np.abs(a_r - b_r) >= eps:
+                x1_t = (a_t + b_t - eps) / 2
+                x2_t = (a_t + b_t + eps) / 2
 
-        a_r = r_turn
-        b_r = r_out_r - a_r
+                x1_r = (a_r + b_r - eps) / 2
+                x2_r = (a_t + b_t + eps) / 2
 
-        while np.abs(a_t - b_t) >= eps and np.abs(a_r - b_r) >= eps:
-            x1_t = (a_t + b_t - eps) / 2
-            x2_t = (a_t + b_t + eps) / 2
+                m_x1 = np.max(mutual_inductance(
+                    coil_1=np.linspace(x1_t, r_out_t, n_t),
+                    coil_2=np.linspace(x1_r, r_out_r, k_r),
+                    d=d, ro=ro
+                ))
 
-            x1_r = (a_r + b_r - eps) / 2
-            x2_r = (a_t + b_t + eps) / 2
+                m_x2 = np.max(mutual_inductance(
+                    coil_1=np.linspace(x2_t, r_out_t, n_t),
+                    coil_2=np.linspace(x2_r, r_out_r, k_r),
+                    d=d, ro=ro
+                ))
 
-            m_x1 = np.max(mutual_inductance(
-                coil_1=np.linspace(x1_t, r_out_t, n_t),
-                coil_2=np.linspace(x1_r, r_out_r, k_r),
+                if np.abs(m_max - m_x1) < np.abs(m_max - m_x2):
+                    b_t = x1_t
+                    b_r = x1_r
+                else:
+                    a_t = x2_t
+                    a_r = x2_r
+
+            r_in_r = (a_r + b_r) / 2
+            r_in_t = (a_t + b_t) / 2
+
+            m = mutual_inductance(
+                coil_1=np.linspace(r_in_t, r_out_t, n_t),
+                coil_2=np.linspace(r_in_r, r_out_r, k_r),
                 d=d, ro=ro
-            ))
+            )
 
-            m_x2 = np.max(mutual_inductance(
-                coil_1=np.linspace(x2_t, r_out_t, n_t),
-                coil_2=np.linspace(x2_r, r_out_r, k_r),
-                d=d, ro=ro
-            ))
+            print(f"Finnish step 10.")
+            print(f"Calculated values of r_in_t={r_out_t} м\n")
+            print(f"Calculated values of r_in_r={r_out_r} м\n")
 
-            if np.abs(m_max - m_x1) < np.abs(m_max - m_x2):
-                a_t = x2_t
-                a_r = x2_r
-            else:
-                b_t = x1_t
-                b_r = x1_r
+            debug(
+                ro=ro, m_max=m_max,
+                m_min=m_min,
+                m=m, title="После шага 10."
+            )
 
-        r_in_r = (a_r + b_r) / 2
-        r_in_t = (a_t + b_t) / 2
-
-        m = mutual_inductance(
-            coil_1=np.linspace(r_in_t, r_out_t, n_t),
-            coil_2=np.linspace(r_in_r, r_out_r, k_r),
-            d=d, ro=ro
-        )
-
-        print(f"Calculated values of r_in_t={r_out_t} м\n")
-        print(f"Calculated values of r_in_r={r_out_r} м\n")
-
-        debug(
-            ro=ro, m_max=m_max,
-            m_min=m_min,
-            m=m, title="После шага 10."
-        )
-
-        if np.max(m) > m_max:
-            if k_r > 1:
-                k_r -= 1
+            if np.max(m) > m_max:
+                if k_r > 1:
+                    k_r -= 1
+                    print(f"Changed count of turn k_r={k_r}")
+                else:
+                    flag = False
+                    break
             else:
                 break
+
+        if flag is False:
+            break
+
+    if flag:
+        print(f"Transmitting coil:\n r in_t={r_in_t}м\n r out_t={r_out_t}м\n Nt={n_t}")
+        print(f"Receiving coil:\n r in_r={r_in_r}м\n r out_r={r_out_r}м\n Kr={k_r}")
+    else:
+        print("Optimization is impossible!")
+
+    m = mutual_inductance(
+        coil_1=np.linspace(r_in_t, r_out_t, n_t),
+        coil_2=np.linspace(r_in_r, r_out_r, k_r),
+        d=d, ro=ro
+    )
+
+    debug(
+        ro=ro, m_max=m_max,
+        m_min=m_min, m=m,
+        title="After procedure"
+    )
 
 
     #     # print(f"r_in_r={r_in_r}")
@@ -283,17 +316,7 @@ def main():
     #         d=d, ro=ro
     #     )
     # #
-    # # m = mutual_inductance(
-    # #     coil_1=np.linspace(r_in_t, r_out_t, n_t),
-    # #     coil_2=np.linspace(r_in_r, r_out_r, k_r),
-    # #     d=d, ro=ro
-    # # )
-    #
-    # debug(
-    #     ro=ro, m_max=m_max,
-    #     m_min=m_min, d=d,
-    #     m=m, title="After procedure"
-    # )
+
 
 
 if __name__ == "__main__":
