@@ -308,24 +308,6 @@ def main():
     )
 
 
-    #     # print(f"r_in_r={r_in_r}")
-    #     # print(f"r_in_t={r_in_t}")
-
-    #
-    #     if (r_out_t - r_in_t) < eps or (r_out_r - r_in_r) < eps:
-    #         k_r -= 1
-    #
-    #     if k_r == 1:
-    #         print("Process terminated. Geometric optimization coil is not possible. Break 2")
-    #         break
-    #
-    #     m = mutual_inductance(
-    #         coil_1=np.linspace(r_in_t, r_out_t, n_t),
-    #         coil_2=np.linspace(r_in_r, r_out_r, k_r),
-    #         d=d, ro=ro
-    #     )
-    # #
-
 
 
 if __name__ == "__main__":
