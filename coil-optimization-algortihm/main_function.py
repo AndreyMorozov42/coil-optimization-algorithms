@@ -1,7 +1,8 @@
 import numpy as np
 
 def self_inductance_turn(r, s):
-    mu0 = 4 * np.pi * 10 ** (-7)
+    # mu0 = 4 * np.pi * 10 ** (-7)
+    mu0 = 1.26e-6
     a = np.log(8 * r / s)
     b = s ** 2 / (8 * r ** 2)
     return mu0 * r * (a - 7 / 4 + b * (a + 1 / 3))
@@ -9,7 +10,8 @@ def self_inductance_turn(r, s):
 def mutual_inductance(coil_1, coil_2, d, ro):
     N = K = 90
     fi = 0
-    mu0 = 4 * np.pi * 10 ** (-7)
+    # mu0 = 4 * np.pi * 10 ** (-7)
+    mu0 = 1.26e-6
     n = np.arange(N)
     k = n.reshape((K, 1))
     df1 = 2 * np.pi / N

@@ -22,9 +22,9 @@ def main():
     # Step 1. Assignment of the initial values
     power = 10
     n = 10
-    f = 1e6
+    f = 2e6
     w = 2 * np.pi * f
-    c_t = c_r = 1e-9
+    c_t = c_r = 15e-9
 
     # parameter of coil
     r_out_r = 0.03
@@ -32,13 +32,13 @@ def main():
 
     # distance
     fi = 0
-    d = 0.01
+    d = 0.015
     ro = np.linspace(0, 30 * 1e-3, num=30)
 
     p_max = power * (1 + n / 100)
     p_min = power * (1 - n / 100)
 
-    print(f"Range of power:\n {p_min}...{p_max} Вт\n")
+    print(f"Range of power:\n {p_min} ... {p_max} Вт\n")
 
     # Step 2. Calculation of L_r and L_t
     l_t = l_r = 1 / (c_t * w ** 2)
@@ -51,6 +51,7 @@ def main():
     n_t = int(np.ceil(np.sqrt(l_t / l_turn)))
     k_r = int(np.ceil(np.sqrt(l_r / l_turn)))
 
+
     print(f"Count of turn:\n Nt={n_t}\n Kr={k_r}\n")
 
     # Step 4. Calculation of Vs
@@ -59,9 +60,9 @@ def main():
     r_l = 20
 
     # calculation quality factor
-    q_t = quality_factor(r_t, l_t, c_t)
-    q_r = quality_factor(r_r + r_l, l_r, c_r)
-    k_crit = 1 / np.sqrt(q_t * q_r)
+    q_t = np.round(quality_factor(r_t, l_t, c_t), 4)
+    q_r = np.round(quality_factor(r_r + r_l, l_r, c_r), 4)
+    k_crit = np.round(1 / np.sqrt(q_t * q_r), 4)
 
     z_t = np.abs(1j * w * l_t + 1 / (1j * w * c_t) + r_t)
     z_r = np.abs(1j * w * l_r + 1 / (1j * w * c_r) + r_l + r_r)
@@ -83,13 +84,13 @@ def main():
     debug(
         ro=ro, m_max=m_max,
         m_min=m_min,
-        title="После шага 5."
+        title="Шаг 5. Получение диапазона\n для взаимной индуктивности (M)"
     )
 
     # Step 6. Calculation of r in_t and r in_t
     a = 1e-3
-    b = r_out_r - (k_r - 1) * a
-    eps = 1e-4
+    b = r_out_r - (n_t - 1) * a
+    eps = 0.5e-3
 
     while(b - a) >= eps:
         x1 = (a + b - eps) / 2
@@ -125,37 +126,53 @@ def main():
 
     debug(
         ro=ro, m_max=m_max, m_min=m_min,
-        m=m, title="После шага 6."
+        m=m, title="Шаг 6. Расчёт взаимной индуктивности\n при подобранных внутренних радиусах"
     )
 
     print(f"Calculated values of internal radii:\n r_in_t={r_in_t} м\n r_in_r={r_in_r} м\n")
 
     flag = True
     while np.min(m) < m_min or np.max(m) > m_max:
-
         # Step 8. Calculation r out_t max
-        r_max_t = r_out_t
-        m_prev = 0
+        r_max_t = 0
 
-        while np.min(m) < m_min:
-            # r_max_t += r_turn
-            r_max_t += r_out_t
-            m = np.min(mutual_inductance(
-                coil_1=np.linspace(r_in_r, r_max_t, n_t),
+        r_i0 = r_out_r
+        m_i0 = mutual_inductance(
+            coil_1=np.linspace(r_in_r, r_i0, n_t),
+            coil_2=np.linspace(r_in_t, r_out_r, k_r),
+            d=d, ro=ro
+        )
+
+        r_i1 = r_out_r
+
+        # ToDo: experiment with the flag_rout
+        while np.min(m_i0) < m_min:
+            r_i1 += r_out_t
+            m_i1 = mutual_inductance(
+                coil_1=np.linspace(r_in_r, r_i1, n_t),
                 coil_2=np.linspace(r_in_t, r_out_r, k_r),
                 d=d, ro=ro
-            ))
+            )
 
-            if m > m_prev:
-                m_prev = m
+            if np.min(m_i1) > np.min(m_i0):
+                m_i0 = m_i1
+                r_i0 = r_i1
             else:
-                if np.min(m) < m_min:
+                if np.min(m_i0) < m_min:
                     n_t += 1
+                    r_i0 = r_out_r
+                    m_i0 = mutual_inductance(
+                        coil_1=np.linspace(r_in_r, r_i0, n_t),
+                        coil_2=np.linspace(r_in_t, r_out_r, k_r),
+                        d=d, ro=ro
+                    )
+                    r_i1 = r_out_r
                     print(f"Changed count of turn n_t={n_t}")
-                    r_max_t = r_out_t
+        r_max_t = r_i0
         print("Finish step 8.")
 
         print(f"Calculated values of r_out_t max = {r_max_t} м\n")
+        print(f"Count of turn n_t={n_t}")
 
         m_rmax = mutual_inductance(
             coil_1=np.linspace(r_in_r, r_max_t, n_t),
@@ -166,7 +183,7 @@ def main():
         debug(
             ro=ro, m_max=m_max,
             m_min=m_min,
-            m=m_rmax, title="После шага 8."
+            m=m_rmax, title="Шаг 8. Определение RmaxT"
         )
 
         # Step 9. Calculation of R_out_T
@@ -205,21 +222,21 @@ def main():
         debug(
             ro=ro, m_max=m_max,
             m_min=m_min,
-            m=m, title="После шага 9."
+            m=m, title="Шаг 9. Расчёт RoutT"
         )
 
         # check if procedure optimization is possible
-        if n_t > (r_out_t - r_turn) / r_turn:
+        if n_t > (r_out_t - 1e-3) / 1e-3:
             print("Process terminated. Geometric optimization coil is impossible. Break 1")
             flag = False
-            break
+            # break
 
         while True:
             # Step 10. Recalculation of r_in_t and r_int_r
-            a_t = r_turn
+            a_t = 1e-3
             b_t = r_out_t - a_t
 
-            a_r = r_turn
+            a_r = 1e-3
             b_r = r_out_r - a_r
 
             while np.abs(a_t - b_t) >= eps and np.abs(a_r - b_r) >= eps:
@@ -258,13 +275,13 @@ def main():
             )
 
             print(f"Finnish step 10.")
-            print(f"Calculated values of r_in_t={r_out_t} м\n")
+            print(f"Calculated values of r_in_t={r_in_t} м\n")
             print(f"Calculated values of r_in_r={r_out_r} м\n")
 
             debug(
                 ro=ro, m_max=m_max,
                 m_min=m_min,
-                m=m, title="После шага 10."
+                m=m, title="Шаг 10. Расчёт внутренних радиусов катушек r inT, r inR"
             )
 
             if np.max(m) > m_max:
@@ -277,8 +294,8 @@ def main():
             else:
                 break
 
-        if flag is False:
-            break
+            if flag is False:
+                break
 
     if flag:
         print(f"Transmitting coil:\n r in_t={r_in_t}м\n r out_t={r_out_t}м\n Nt={n_t}")
@@ -295,7 +312,7 @@ def main():
     debug(
         ro=ro, m_max=m_max,
         m_min=m_min, m=m,
-        title="After procedure"
+        title="После процедуры оптимизации"
     )
 
 
