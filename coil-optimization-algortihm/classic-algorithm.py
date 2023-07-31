@@ -17,7 +17,7 @@ def debug(ro, d, m_max, m_min, m, title=""):
 
 
 def main():
-    # Step 1. Set initial value
+    # Step 1. Assignment of the initial values
     power = 10
     n = 10
     f = 1e6
