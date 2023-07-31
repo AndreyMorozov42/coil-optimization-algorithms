@@ -89,7 +89,7 @@ def main():
 
     # Step 6. Calculation of r in_t and r in_t
     a = 1e-3
-    b = r_out_r - (n_t - 1) * a
+    b = r_out_r - (k_r - 1) * (r_turn * 2 + a)
     eps = 0.5e-3
 
     while(b - a) >= eps:
@@ -233,40 +233,32 @@ def main():
 
         while True:
             # Step 10. Recalculation of r_in_t and r_int_r
-            a_t = 1e-3
-            b_t = r_out_t - a_t
+            a = 1e-3
+            b = r_out_r - (k_r - 1) * (r_turn * 2 + a)
 
-            a_r = 1e-3
-            b_r = r_out_r - a_r
 
-            while np.abs(a_t - b_t) >= eps and np.abs(a_r - b_r) >= eps:
-                x1_t = (a_t + b_t - eps) / 2
-                x2_t = (a_t + b_t + eps) / 2
-
-                x1_r = (a_r + b_r - eps) / 2
-                x2_r = (a_t + b_t + eps) / 2
+            while np.abs(a - b) >= eps:
+                x1 = (a + b - eps) / 2
+                x2 = (a + b + eps) / 2
 
                 m_x1 = np.max(mutual_inductance(
-                    coil_1=np.linspace(x1_t, r_out_t, n_t),
-                    coil_2=np.linspace(x1_r, r_out_r, k_r),
+                    coil_1=np.linspace(x1, r_out_t, n_t),
+                    coil_2=np.linspace(x1, r_out_r, k_r),
                     d=d, ro=ro
                 ))
 
                 m_x2 = np.max(mutual_inductance(
-                    coil_1=np.linspace(x2_t, r_out_t, n_t),
-                    coil_2=np.linspace(x2_r, r_out_r, k_r),
+                    coil_1=np.linspace(x2, r_out_t, n_t),
+                    coil_2=np.linspace(x2, r_out_r, k_r),
                     d=d, ro=ro
                 ))
 
                 if np.abs(m_max - m_x1) < np.abs(m_max - m_x2):
-                    b_t = x1_t
-                    b_r = x1_r
+                    b = x1
                 else:
-                    a_t = x2_t
-                    a_r = x2_r
+                    a = x2
 
-            r_in_r = (a_r + b_r) / 2
-            r_in_t = (a_t + b_t) / 2
+            r_in_t = r_in_r = (a + b) / 2
 
             m = mutual_inductance(
                 coil_1=np.linspace(r_in_t, r_out_t, n_t),
