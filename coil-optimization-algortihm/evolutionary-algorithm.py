@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from main_function import *
 
 
-def debug(ro, m_max, m_min, m=None, title=None):
-    plt.xlabel("ro, м")
-    plt.ylabel("M, Гн")
+def debug(ro, m_max, m_min, m=None, title=None, x_label="ro, м", y_label="M, Гн"):
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     plt.plot(ro, m_max * np.ones(ro.shape), "k--", )
     plt.plot(ro, m_min * np.ones(ro.shape), "k--", )
     if m is not None:
@@ -24,7 +24,7 @@ def main():
     n = 10
     f = 2e6
     w = 2 * np.pi * f
-    c_t = c_r = 1e-9
+    c_t = c_r = 15e-9
 
     # parameter of coil
     r_out_r = 0.03
@@ -43,14 +43,13 @@ def main():
     # Step 2. Calculation of L_r and L_t
     l_t = l_r = 1 / (c_t * w ** 2)
 
-    print(f"Value of self-inductances:\n Lt={l_t * 10**6} мкГн\n Lr={l_r * 10**6} мкГн\n")
+    print(f"Value of self-inductances:\n Lt={l_t * 10 ** 6} мкГн\n Lr={l_r * 10 ** 6} мкГн\n")
 
     # Step 3. Calculation of N and K
     r_out_t = r_in_t = r_in_r = r_out_r
     l_turn = self_inductance_turn(r=r_out_t, s=r_turn)
     n_t = int(np.ceil(np.sqrt(l_t / l_turn)))
     k_r = int(np.ceil(np.sqrt(l_r / l_turn)))
-
 
     print(f"Count of turn:\n Nt={n_t}\n Kr={k_r}\n")
 
@@ -92,7 +91,7 @@ def main():
     b = r_out_r - (k_r - 1) * (r_turn * 2 + a)
     eps = 0.5e-3
 
-    while(b - a) >= eps:
+    while (b - a) >= eps:
         x1 = (a + b - eps) / 2
         m_x1 = np.max(
             mutual_inductance(
@@ -165,7 +164,6 @@ def main():
                 print(f"Changed count of turn n_t={n_t}")
     r_max_t = r_i0
 
-
     print(f"Calculated values of r_out_t max = {r_max_t} м\n")
     print(f"Count of turn n_t={n_t}")
 
@@ -181,8 +179,93 @@ def main():
         m=m_rmax, title="Шаг 3. Определение RmaxT"
     )
 
-    r_out_t = np.random.uniform(low=r_in_t, high=r_max_t)
-    print(r_out_t)
+    # 1 шаг - Генерация внешнего радиуса передающей катушки
+    r_out_t = np.round(np.random.uniform(low=r_in_t, high=r_max_t), 3)
+    print(f"r_in_t={r_in_t} r_out_t={r_out_t} r_max_t={r_max_t}")
+
+    # 2 шаг - Вычисление Nt max
+    n_max = np.floor((r_out_t - r_in_t) / (2 * r_turn) - 1) + 2
+    print(f"Nmax={n_max}")
+
+    # 3 шаг - Генерация катушки
+    def coil_creation(n_min, n_max, r_in, r_out):
+        coil = np.array([r_in, r_out])
+        for i in range(np.random.randint(n_min, n_max)):
+            r = np.round(np.random.uniform(r_in, r_out), 3)
+            if r not in coil:
+                coil = np.append(coil, r)
+        return coil
+
+    # 4 шаг - Вычисление Kr max
+    k_max = np.floor((r_out_r - r_in_r) / (2 * r_turn) - 1) + 2
+    print(f"Kmax={k_max}")
+
+    # 5 шаг - Генерация принимающей и передающей катушек, вычисление взаимной индуктивности
+    coil_r = coil_creation(n_min=k_r, n_max=k_max, r_in=r_in_r, r_out=r_out_r)
+    print(f"coil_r={coil_r}")
+
+    coil_t = coil_creation(n_min=n_t, n_max=n_max, r_in=r_in_t, r_out=r_out_t)
+    print(f"coil_t={coil_t}")
+
+    m = mutual_inductance(coil_t, coil_r, d, ro)
+
+    debug(ro, m_max, m_min, m=m, title="Распределение взаимной индуктивности\n для начальных сгенерированных катушек")
+
+    debug(ro, m_max, m_min, m=m, title="Распределение взаимной индуктивности\n для начальных сгенерированных катушек")
+
+    import time
+    # 6 шаг - Сам алгоритм
+    iterations = 1000
+
+    i = 0
+    start_time = time.time
+    while i != iterations:
+        i += 1
+
+        coil_rq = coil_creation(n_min=k_r, n_max=k_max, r_in=r_in_r, r_out=r_out_r)
+        coil_tq = coil_creation(n_min=n_t, n_max=n_max, r_in=r_in_t, r_out=r_out_t)
+        m_q = mutual_inductance(coil_tq, coil_rq, d, ro)
+
+        #     if np.abs(m_max - np.max(m_q)) < np.abs(m_max - np.max(m)) or np.abs(m_min - np.min(m_q)) < np.abs(m_min - np.min(m)):
+        # if m_max - np.max(m_q) > 0 and np.min(m_q) - m_min > 0:
+        if np.min(m_q) > m_min and np.max(m_q) < m_max:
+            print(
+                f"{i}: Распределение взаимной индуктивности приблизилось к диапазону m_max({m_max}) и m_min({m_min})!")
+            coil_r = coil_rq.copy()
+            coil_t = coil_tq.copy()
+            m = m_q.copy()
+
+    debug(ro, m_max, m_min, m=m, title=f"После {iterations} итераций")
+
+    print(f"coil_t = {coil_t}")
+    print(f"coil_r = {coil_r}")
+
+    # Step 11. Пересчёт L_t, L_r и С_t, C_r
+    l_t = self_inductance_coil(coil=coil_t,
+                               r_turn=r_turn)
+    print(f"l_t={l_t} Гн")
+    c_t = 1 / (l_t * w ** 2)
+    print(f"c_t={c_t} Ф")
+    q_t = 1 / (r_t) * np.sqrt(l_t / c_t)
+    print(f"q_t={q_t}\n")
+
+    l_r = self_inductance_coil(coil=coil_r,
+                               r_turn=r_turn)
+    print(f"l_r={l_r} Гн")
+    c_r = 1 / (l_r * w ** 2)
+    print(f"c_r={c_r} Ф")
+    q_r = 1 / (r_l) * np.sqrt(l_r / c_r)
+    print(f"q_r={q_r}\n")
+
+    z_t = 1j * w * l_t + 1 / (1j * w * c_t) + r_t
+    z_r = 1j * w * l_r + 1 / (1j * w * c_r) + r_l + r_r
+    p_l = (w ** 2) * (m ** 2) * (vs ** 2) * r_l / (np.abs(z_t * z_r) + (w ** 2) * (m ** 2)) ** 2
+
+    debug(ro=m, m_max=p_max, m_min=p_min,
+          m=p_l, title="Выходная мощность",
+          x_label="M, Гн", y_label="P, Вт")
+
+    print(f"Перепад выходной мощности:\n p={(np.max(p_l) - np.min(p_l)) / np.max(p_l)}")
 
 
 
