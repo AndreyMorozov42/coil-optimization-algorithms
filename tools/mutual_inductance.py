@@ -9,7 +9,7 @@ def mutual_inductance(coil_1, coil_2, d, ro, fi=0, N=60, K=60):
     df2 = 2 * np.pi / K
     mi_ro = np.array([])
     for r in ro:
-        mutual_inductance = np.ones((len(coil_1), len(coil_2)))
+        mutual_inductance = np.zeros((coil_1.shape[0], coil_2.shape[0]))
         for ri in range(len(coil_1)):
             for rj in range(len(coil_2)):
                 M = 0

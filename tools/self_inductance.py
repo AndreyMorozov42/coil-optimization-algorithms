@@ -1,7 +1,7 @@
 import numpy as np
 
 
-from self_inductance_turn import self_inductance_turn
+from tools.self_inductance_turn import self_inductance_turn
 
 def self_inductance(coil, r_turn, N=60, K=60):
     # vacuum permeability

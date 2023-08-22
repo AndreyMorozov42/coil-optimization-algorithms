@@ -1,10 +1,10 @@
 import numpy as np
 
-from mutual_inductance import mutual_inductance
-from self_inductance import self_inductance
+from tools.mutual_inductance import mutual_inductance
+from tools.self_inductance import self_inductance
 
 
-def calc_coupling_coefficient(coil_1, coil_2, r_turn, d, ro=0, fi=0):
+def coupling_coefficient(coil_1, coil_2, r_turn, d, ro=[0], fi=0):
     m = mutual_inductance(coil_1, coil_2, d, ro=ro, fi=fi)
     l1 = self_inductance(coil_1, r_turn)
     l2 = self_inductance(coil_2, r_turn)
