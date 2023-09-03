@@ -131,9 +131,6 @@ def main():
         ro=ro, d=d
     )
 
-    print("allm", allm[-1])
-    print("good", good[-1])
-
     show_climbing(x=coils_r.T[1], y=k, x_label="r, м", y_label="k", title="Hill Climbing with all mutation",
                   good_points=good, bad_points=bad)
     show_climbing(x=coils_r.T[1], y=k, x_label="r, м", y_label="k", title="Hill Climbing with good mutation",
