@@ -7,7 +7,7 @@ def mutation(start, finish, x=None, r=0.005):
     return np.random.uniform(low=start if x - r < start else x - r, high=finish if x + r > finish else x + r)
 
 
-def mutation_lb(start, finish, x=None, dr_min=0.0004, dr_max=0.028):
+def mutation_lb(start, finish, x=None, dr_min=0.001, dr_max=0.025):
     """
     Mutation of a value with a lower bound
     :param start:
