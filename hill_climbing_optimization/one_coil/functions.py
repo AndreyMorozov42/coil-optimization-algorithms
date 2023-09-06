@@ -52,9 +52,9 @@ def self_inductance(coil, thin):
 
 
 # функция расчёта коэффициента связи
-def coupling_coefficient(coil_1, thin1, coil_2, thin2, dist):
+def coupling_coefficient(coil_1, r1_turn, coil_2, r2_turn, dist):
     mi = mutual_inductance(coil_1, coil_2, dist)
-    l1 = self_inductance(coil_1, thin1)
-    l2 = self_inductance(coil_2, thin2)
+    l1 = self_inductance(coil_1, r1_turn)
+    l2 = self_inductance(coil_2, r2_turn)
     k = mi / (l1 * l2) ** 0.5
     return k
