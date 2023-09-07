@@ -64,24 +64,62 @@ def adaptive_hill_climbing(coil_t, coil_r, r_turn, d):
     print(f"All iterations: {i}")
     return coil_t.copy(), fit_k.copy(), all_mutation, bad_mutation, good_mutation
 
+
+def launch(iterations, coil_t, coil_r, r_turn, d):
+    bad_mutation = []
+    good_mutation = []
+    all_mutation = []
+    fit_k = []
+
+    allm = 0
+    badm = 0
+    goodm = 0
+    k = 0
+
+    for _ in range(iterations):
+
+        coil_t, k, allm, badm, goodm = adaptive_hill_climbing(
+            coil_t=coil_t,
+            coil_r=coil_r,
+            r_turn=r_turn,
+            d=d
+        )
+
+        bad_mutation.append(badm)
+        good_mutation.append(goodm)
+        all_mutation.append(allm)
+        fit_k.append(k)
+
+    bad_mutation = np.mean(np.array(bad_mutation))
+    good_mutation = np.mean(np.array(good_mutation))
+    all_mutation = np.mean(np.array(all_mutation))
+
+    return max(fit_k), all_mutation, bad_mutation, good_mutation
+
+
 def main():
-    coil_t = np.linspace(start=0.01, stop=0.05, num=4)
-    coil_r = np.linspace(start=0.01, stop=0.05, num=4)
+    coil_t = np.linspace(start=0.02, stop=0.05, num=4)
+    coil_r = np.linspace(start=0.03, stop=0.09, num=4)
     r_turn = 0.0004
     d = 0.01
 
-    coil_t, k, allm, badm, goodm = adaptive_hill_climbing(
-        coil_t=coil_t,
-        coil_r=coil_r,
-        r_turn=r_turn,
-        d=d
-    )
+    # coil_t, k, allm, badm, goodm = adaptive_hill_climbing(
+    #     coil_t=coil_t,
+    #     coil_r=coil_r,
+    #     r_turn=r_turn,
+    #     d=d
+    # )
+    # print(f"coil_t={coil_t} k={k}")
+    # print(f"All mutation {allm}")
+    # print(f"Good mutation {goodm}")
+    # print(f"Bad mutation {badm}")
 
-    print(f"coil_t={coil_t} k={k}")
-    print(f"All mutation {allm}")
-    print(f"Good mutation {goodm}")
-    print(f"Bad mutation {badm}")
+    k, a, g, b = launch(iterations=1000, coil_t=coil_t, coil_r=coil_r, r_turn=r_turn, d=d)
 
+    print(f"All mutation {a}")
+    print(f"Good mutation {g}")
+    print(f"Bad mutation {b}")
+    print(f"Max k = {k}")
 
 if __name__ == "__main__":
     main()
