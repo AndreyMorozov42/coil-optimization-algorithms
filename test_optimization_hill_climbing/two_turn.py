@@ -203,6 +203,7 @@ def main():
     #           f"for coil_t = {good[-1][0]} м and coil_r = {coil_r[0]} м")
     # elif len(good) == 0:
     #     print(f"Total mutations: {len(allm)}")
+    #     print(f"Good mutations: {len(good)}")
     #     print(f"Bad mutations: {len(bad) + 1}")
     #     print(f"The resulting value of the coupling coefficient: {allm[0][1]}\n"
     #           f"for coil_t = {allm[-1][0]} м and coil_r = {coil_r} м")

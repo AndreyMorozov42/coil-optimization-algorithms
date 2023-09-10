@@ -147,7 +147,7 @@ def main():
 
     coil_t = np.array([0.4 * np.linspace(0.01, 0.1, 50)]).T
     coil_tl = np.array([np.linspace(0.01, 0.1, 50)]).T
-    coils_t = np.hstack([coil_t, coil_tl])                  # transmitting coils
+    coils_t = np.round(np.hstack([coil_t, coil_tl]), 3)     # transmitting coils
 
     r_turn = 0.0004     # radius of coil turns
 
@@ -165,7 +165,7 @@ def main():
 
     # show distribution of mutual inductance and couple coefficient
     # show_plot(x=coils_t.T[1], y=m * 1e6, x_label="R22, м", y_label="M, мкГн",
-    #           title="Коэффициент связи двух катушек индуктивности\n"
+    #           title="Взаимная индуктивность двух катушек\n"
     #                 "(количество витков в каждой катушке - 2)")
     # show_plot(x=coils_t.T[1], y=k, x_label="R22, м", y_label="k",
     #           title="Коэффициент связи двух катушек индуктивности\n"
@@ -212,13 +212,14 @@ def main():
     #     print(f"Good mutations: {len(good)}")
     #     print(f"Bad mutations: {len(bad)}")
     #     print(f"The resulting value of the coupling coefficient: {good[-1][1][0]}\n"
-    #           f"for coil_t = {good[-1][0]} м and coil_r = {coil_t} м")
+    #           f"for coil_t = {good[-1][0]} м and coil_r = {coil_r} м")
     # elif len(good) == 0:
     #     # when the first generate coil get the maximum of coupling coefficient
     #     print(f"Total mutations: {len(allm)}")
+    #     print(f"Good mutations: {len(good)}")
     #     print(f"Bad mutations: {len(bad) + 1}")
     #     print(f"The resulting value of the coupling coefficient: {allm[0][1]}\n"
-    #           f"for coil_t = {allm[-1][0]} м and coil_r = {coil_t} м")
+    #           f"for coil_t = {allm[-1][0]} м and coil_r = {coil_r} м")
 
     '''
     ------------------------------------------------------------
