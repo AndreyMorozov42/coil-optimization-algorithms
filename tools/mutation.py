@@ -18,11 +18,11 @@ def mutation_lb(start, finish, x=None, dr_min=0.001, dr_max=0.025):
     :return:
     """
     if x is None:
-        return np.random.uniform(start, finish)
-
-    if np.random.choice([-1, 1]) > 0:
-        return np.random.uniform(low=finish if x+dr_min > finish else x+dr_min,
-                                 high=finish if x+dr_max > finish else x+dr_max)
+        res = np.random.uniform(start, finish)
+    elif np.random.choice([-1, 1]) > 0:
+        res = np.random.uniform(low=finish if x+dr_min > finish else x+dr_min,
+                                high=finish if x+dr_max > finish else x+dr_max)
     else:
-        return np.random.uniform(low=start if x-dr_min < start else x-dr_min,
-                                 high=start if x-dr_max < start else x-dr_max)
+        res = np.random.uniform(low=start if x-dr_min < start else x-dr_min,
+                                high=start if x-dr_max < start else x-dr_max)
+    return np.round(res, 3)
