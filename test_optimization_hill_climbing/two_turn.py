@@ -63,7 +63,7 @@ def hill_climbing(start, finish, coil_2, r_turn, ro, d):
     all_mutation.append((coil_1q.copy(), fit_kq.copy()))
     i += 1
 
-    while (np.abs(fit_kq - fit_k) >= thr or i == 0) and i != 1000:
+    while np.abs(fit_kq - fit_k) >= thr and i != 1000:
         i += 1
         # print(f"Algorithm iteration: {i}")
 
@@ -91,8 +91,6 @@ def hill_climbing(start, finish, coil_2, r_turn, ro, d):
         good_mutation.append((coil_1q.copy(), fit_kq.copy()))
     else:
         bad_mutation.append((coil_1q.copy(), fit_kq.copy()))
-
-    i += 1
 
     return all_mutation, good_mutation, bad_mutation
 
