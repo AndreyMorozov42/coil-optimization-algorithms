@@ -1,6 +1,6 @@
 import numpy as np
 
-from functions import coupling_coefficient
+from hill_climbing_optimization.functions import coupling_coefficient
 from tools.mutation import mutation_lb
 
 
