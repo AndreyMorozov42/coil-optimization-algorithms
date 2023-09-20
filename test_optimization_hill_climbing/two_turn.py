@@ -157,9 +157,8 @@ def main():
         m[ind_r] = mutual_inductance(coil_1=coil_t, coil_2=coil_r, d=d, ro=ro)
         k[ind_r] = coupling_coefficient(coil_1=coil_t, coil_2=coil_r, r_turn=r_turn, d=d)
 
-    # show distribution of mutual inductance and couple coefficient
-    show_plot(x=coils_t, y=m * 1e6, x_label="R2, м", y_label="M, мкГн", title="Взаимная индуктивность двух витков")
-    show_plot(x=coils_t, y=k, x_label="R2, м", y_label="k", title="Коэффициент связи двух витков")
+    FLAG_SHOW_PLOT = True
+    FLAG_RUN_MULTIITER = True
 
     # show the maximum value of mutual inductance
     # and the corresponding radius value
@@ -171,66 +170,77 @@ def main():
     # and the corresponding radius value
     k_max = np.max(k)
     r_k_max = coils_t[np.argmax(k)]
-    print(f"k_max = {k_max}, for r = {r_k_max} м")
+    print(f"k_max = {k_max}, for r = {r_k_max} м\n")
 
-    '''
-    ------------------------------------------------------------
-    Testing the algorithm for Hill Climbing in one run.
-    ------------------------------------------------------------
-    '''
-    # allm, good, bad = hill_climbing(start=coils_t[0], finish=coils_t[-1],
-    #                                 coil_2=coil_r, r_turn=r_turn, ro=ro, d=d)
-    #
-    # show_climbing(x=coils_t, y=k, x_label="R2, м", y_label="k", title="Поиск максимума коэффициента связи алгоритмом\n "
-    #                                                                   "\"Поиск восхождением к вершине холма\"",
-    #               good_points=good, bad_points=bad)
-    # show_climbing(x=coils_t, y=k, x_label="R2, м", y_label="k", title="Поиск максимума коэффициента связи алгоритмом\n "
-    #                                                                   "\"Поиск восхождением к вершине холма\"",
-    #               good_points=good)
-    # show_climbing(x=coils_t, y=k, x_label="R2, м", y_label="k", title="Поиск максимума коэффициента связи алгоритмом\n "
-    #                                                                   "\"Поиск восхождением к вершине холма\"",
-    #               bad_points=bad)
-    #
+    if FLAG_SHOW_PLOT:
+        '''
+        ------------------------------------------------------------
+        Show distribution plots of
+        coupling coefficient and mutual inductance.
+        ------------------------------------------------------------
+        '''
+        # show distribution of mutual inductance and couple coefficient
+        show_plot(x=coils_t, y=m * 1e6, x_label="R2, м", y_label="M, мкГн", title="Взаимная индуктивность двух витков")
+        show_plot(x=coils_t, y=k, x_label="R2, м", y_label="k", title="Коэффициент связи двух витков")
 
-    #
-    # if len(good) != 0:
-    #     print(f"Total mutations: {len(allm)}")
-    #     print(f"Good mutations: {len(good)}")
-    #     print(f"Bad mutations: {len(bad)}\n")
-    #     print(f"The resulting value of the coupling coefficient: {good[-1][1]}\n"
-    #           f"for coil_t = {good[-1][0]} м and coil_r = {coil_r[0]} м")
-    # elif len(good) == 0:
-    #     print(f"Total mutations: {len(allm)}")
-    #     print(f"Good mutations: {len(good)}")
-    #     print(f"Bad mutations: {len(bad) + 1}")
-    #     print(f"The resulting value of the coupling coefficient: {allm[0][1]}\n"
-    #           f"for coil_t = {allm[-1][0]} м and coil_r = {coil_r} м")
 
-    '''
-    ------------------------------------------------------------
-    Testing the algorithm for climbing
-    to the top of a hill on several runs.
-    ------------------------------------------------------------
-    '''
-    iterations = 1000
-    mean_agb, median_agb, deviation_agb, counter = launch(iterations=iterations,
-                                                          start=coils_t[0], finish=coils_t[-1],
-                                                          coil_2=coil_r, r_turn=r_turn,
-                                                          ro=ro, d=d, k_max=k_max)
+    if not FLAG_RUN_MULTIITER:
+        '''
+        ------------------------------------------------------------
+        Testing the algorithm for Hill Climbing in one run.
+        ------------------------------------------------------------
+        '''
+        allm, good, bad = hill_climbing(start=coils_t[0], finish=coils_t[-1],
+                                        coil_2=coil_r, r_turn=r_turn, ro=ro, d=d)
 
-    print(f"Average good mutation: {mean_agb[1]}")
-    print(f"Average bad mutation: {mean_agb[2]}")
-    print(f"Average all mutation: {mean_agb[0]}\n")
+        show_climbing(x=coils_t, y=k, x_label="R2, м", y_label="k", title="Поиск максимума коэффициента связи алгоритмом\n "
+                                                                          "\"Поиск восхождением к вершине\"",
+                      good_points=good, bad_points=bad)
+        show_climbing(x=coils_t, y=k, x_label="R2, м", y_label="k", title="Поиск максимума коэффициента связи алгоритмом\n "
+                                                                          "\"Поиск восхождением к вершине\"",
+                      good_points=good)
+        show_climbing(x=coils_t, y=k, x_label="R2, м", y_label="k", title="Поиск максимума коэффициента связи алгоритмом\n "
+                                                                          "\"Поиск восхождением к вершине\"",
+                      bad_points=bad)
 
-    print(f"Median good mutation: {median_agb[1]}")
-    print(f"Median bad mutation: {median_agb[2]}")
-    print(f"Median all mutation: {median_agb[0]}\n")
+        if len(good) != 0:
+            print(f"Total mutations: {len(allm)}")
+            print(f"Good mutations: {len(good)}")
+            print(f"Bad mutations: {len(bad)}\n")
+            print(f"The resulting value of the coupling coefficient: {good[-1][1]}\n"
+                  f"for coil_t = {good[-1][0]} м and coil_r = {coil_r[0]} м")
+        elif len(good) == 0:
+            print(f"Total mutations: {len(allm)}")
+            print(f"Good mutations: {len(good)}")
+            print(f"Bad mutations: {len(bad) + 1}")
+            print(f"The resulting value of the coupling coefficient: {allm[0][1]}\n"
+                  f"for coil_t = {allm[-1][0]} м and coil_r = {coil_r} м")
+    elif FLAG_RUN_MULTIITER:
+        '''
+        ------------------------------------------------------------
+        Testing the algorithm for climbing
+        to the top of a hill on several runs.
+        ------------------------------------------------------------
+        '''
+        iterations = 1000
+        mean_agb, median_agb, deviation_agb, counter = launch(iterations=iterations,
+                                                              start=coils_t[0], finish=coils_t[-1],
+                                                              coil_2=coil_r, r_turn=r_turn,
+                                                              ro=ro, d=d, k_max=k_max)
 
-    print(f"Deviation good mutation: {deviation_agb[1]}")
-    print(f"Deviation bad mutation: {deviation_agb[2]}")
-    print(f"Deviation all mutation: {deviation_agb[0]}\n")
+        print(f"Average good mutation: {mean_agb[1]}")
+        print(f"Average bad mutation: {mean_agb[2]}")
+        print(f"Average all mutation: {mean_agb[0]}\n")
 
-    print(f"Total iterations of running algorithms: {counter}")
+        print(f"Median good mutation: {median_agb[1]}")
+        print(f"Median bad mutation: {median_agb[2]}")
+        print(f"Median all mutation: {median_agb[0]}\n")
+
+        print(f"Deviation good mutation: {deviation_agb[1]}")
+        print(f"Deviation bad mutation: {deviation_agb[2]}")
+        print(f"Deviation all mutation: {deviation_agb[0]}\n")
+
+        print(f"Total iterations of running algorithms: {counter}")
 
 
 if __name__ == "__main__":
