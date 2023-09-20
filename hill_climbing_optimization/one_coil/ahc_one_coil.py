@@ -115,52 +115,55 @@ def main():
     # distance
     d = 0.01
 
-    '''
-    ------------------------------------------------------------
-    Testing the algorithm for Hill Climbing in one run.
-    ------------------------------------------------------------
-    '''
-    # coil_t, k, allm, badm, goodm = adaptive_hill_climbing(
-    #     coil_t=coil_t,
-    #     coil_r=coil_r,
-    #     r_turn=r_turn,
-    #     d=d
-    # )
-    # print(f"The resulting value of the coupling coefficient: k={k}\n"
-    #       f"for coil_t={coil_t} м and coil_r={coil_r} м\n")
-    # print(f"All mutation: {allm}")
-    # print(f"Good mutation: {goodm}")
-    # print(f"Bad mutation: {badm}\n")
-    '''
-    ------------------------------------------------------------
-    Testing the algorithm for climbing
-    to the top of a hill on several runs.
-    ------------------------------------------------------------
-    '''
-    iterations = 100
-    fit_values, mean_agb, median_agb, deviation_agb = launch(
-        iterations=iterations,
-        coil_t=coil_t,
-        coil_r=coil_r,
-        r_turn=r_turn,
-        d=d)
+    FLAG_RUN_MULTIITER = True
+    if not FLAG_RUN_MULTIITER:
+        '''
+        ------------------------------------------------------------
+        Testing the algorithm for Hill Climbing in one run.
+        ------------------------------------------------------------
+        '''
+        coil_t, k, allm, badm, goodm = adaptive_hill_climbing(
+            coil_t=coil_t,
+            coil_r=coil_r,
+            r_turn=r_turn,
+            d=d
+        )
+        print(f"The resulting value of the coupling coefficient: k={k}\n"
+              f"for coil_t={coil_t} м and coil_r={coil_r} м\n")
+        print(f"All mutation: {allm}")
+        print(f"Good mutation: {goodm}")
+        print(f"Bad mutation: {badm}\n")
+    elif FLAG_RUN_MULTIITER:
+        '''
+        ------------------------------------------------------------
+        Testing the algorithm for climbing
+        to the top of a hill on several runs.
+        ------------------------------------------------------------
+        '''
+        iterations = 1000
+        fit_values, mean_agb, median_agb, deviation_agb = launch(
+            iterations=iterations,
+            coil_t=coil_t,
+            coil_r=coil_r,
+            r_turn=r_turn,
+            d=d)
 
-    print(f"Average good mutation: {mean_agb[1]}")
-    print(f"Average bad mutation: {mean_agb[2]}")
-    print(f"Average all mutation: {mean_agb[0]}\n")
+        print(f"Average good mutation: {mean_agb[1]}")
+        print(f"Average bad mutation: {mean_agb[2]}")
+        print(f"Average all mutation: {mean_agb[0]}\n")
 
-    print(f"Median good mutation: {median_agb[1]}")
-    print(f"Median bad mutation: {median_agb[2]}")
-    print(f"Median all mutation: {median_agb[0]}\n")
+        print(f"Median good mutation: {median_agb[1]}")
+        print(f"Median bad mutation: {median_agb[2]}")
+        print(f"Median all mutation: {median_agb[0]}\n")
 
-    print(f"Deviation good mutation: {deviation_agb[1]}")
-    print(f"Deviation bad mutation: {deviation_agb[2]}")
-    print(f"Deviation all mutation: {deviation_agb[0]}\n")
+        print(f"Deviation good mutation: {deviation_agb[1]}")
+        print(f"Deviation bad mutation: {deviation_agb[2]}")
+        print(f"Deviation all mutation: {deviation_agb[0]}\n")
 
-    print(f"Max of couple coefficient: {fit_values[1][1]}\n"
-          f"    for coil_t={fit_values[1][0]}\n")
-    print(f"Min of couple coefficient: {fit_values[0][1]}\n"
-          f"    for coil_t={fit_values[0][0]}")
+        print(f"Max of couple coefficient: {fit_values[1][1]}\n"
+              f"    for coil_t={fit_values[1][0]}\n")
+        print(f"Min of couple coefficient: {fit_values[0][1]}\n"
+              f"    for coil_t={fit_values[0][0]}")
 
 
 if __name__ == "__main__":
