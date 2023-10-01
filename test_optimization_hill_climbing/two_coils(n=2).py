@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -23,12 +24,15 @@ def show_climbing(x, y, x_label="x", y_label="y", title=None, good_points=None, 
     if title is not None:
         plt.title(title)
     if good_points is not None:
+        plt.scatter(good_points[0][0], good_points[0][1], c="green", label="Отобранные особи")
         for p in good_points:
             plt.scatter(p[0], p[1], c="green")
     if bad_points is not None:
+        plt.scatter(bad_points[0][0], bad_points[0][1], c="red", label="Пропущенные особи")
         for p in bad_points:
             plt.scatter(p[0], p[1], c="red")
     plt.grid()
+    plt.legend()
     plt.show()
 
 
@@ -37,6 +41,7 @@ def launch(iterations, start, finish, coil_2, r_turn, ro, d, k_max):
     arr_good = np.array([])
     arr_bad = np.array([])
     arr_all = np.array([])
+    arr_time = np.array([])
 
     # counter when the algorithm has not found the maximum
     failure = 0
@@ -45,8 +50,12 @@ def launch(iterations, start, finish, coil_2, r_turn, ro, d, k_max):
     thr = 1e-1
 
     for _ in range(iterations):
+
+        # search time calculation
+        delta_t = time.time()
         allm, good, bad = hill_climbing(start=start, finish=finish,
                                         coil_2=coil_2, r_turn=r_turn, ro=ro, d=d)
+        delta_t = time.time() - delta_t
 
         if len(good) != 0:
             # checking that the algorithm has converged
@@ -54,6 +63,7 @@ def launch(iterations, start, finish, coil_2, r_turn, ro, d, k_max):
                 arr_all = np.append(arr_all, len(allm))
                 arr_good = np.append(arr_good, len(good))
                 arr_bad = np.append(arr_bad, len(bad))
+                arr_time = np.append(arr_time, delta_t)
             else:
                 failure += 1
         else:
@@ -62,6 +72,7 @@ def launch(iterations, start, finish, coil_2, r_turn, ro, d, k_max):
                 arr_all = np.append(arr_all, 1)
                 arr_good = np.append(arr_good, 1)
                 arr_bad = np.append(arr_bad, 0)
+                # arr_time = np.append(arr_time, delta_t)
             else:
                 failure += 1
 
@@ -72,7 +83,7 @@ def launch(iterations, start, finish, coil_2, r_turn, ro, d, k_max):
     # calculate count of successful run
     all_iterations = iterations - failure
 
-    return mean_agb, median_agb, deviation_agb, all_iterations
+    return mean_agb, median_agb, deviation_agb, arr_time, all_iterations
 
 
 def hill_climbing(start, finish, coil_2, r_turn, ro, d):
@@ -175,7 +186,7 @@ def main():
     r22_k_max = coils_t[np.argmax(k)][1]
     print(f"k_max = {k_max}, for R22 = {r22_k_max} м\n")
 
-    FLAG_SHOW_PLOT = True
+    FLAG_SHOW_PLOT = False
     FLAG_RUN_MULTIITER = True
 
     if FLAG_SHOW_PLOT:
@@ -192,6 +203,9 @@ def main():
         show_plot(x=coils_t.T[1], y=k, x_label="R22, м", y_label="k",
                   title="Коэффициент связи двух катушек индуктивности\n"
                         "(количество витков в каждой катушке - 2)")
+
+        # show_plot(x=coils_t.T[1] * 1e2, y=m * 1e6, x_label="R22, cм", y_label="M, мкГн")
+        # show_plot(x=coils_t.T[1] * 1e2, y=k, x_label="R22, cм", y_label="k")
 
     if not FLAG_RUN_MULTIITER:
         '''
@@ -218,6 +232,15 @@ def main():
                             "\"Поиск восхождением к вершине\"",
                       bad_points=bad)
 
+        # show_climbing(x=coils_t.T[1] * 1e2, y=k, x_label="R22, cм", y_label="k",
+        #               good_points=[(g[0] * 1e2, g[1]) for g in good],
+        #               bad_points=[(b[0] * 1e2, b[1]) for b in bad])
+        # show_climbing(x=coils_t.T[1] * 1e2, y=k, x_label="R22, cм", y_label="k",
+        #               good_points=[(g[0] * 1e2, g[1]) for g in good])
+        # show_climbing(x=coils_t.T[1] * 1e2, y=k, x_label="R22, cм", y_label="k",
+        #               bad_points=[(b[0] * 1e2, b[1]) for b in bad])
+
+
         if len(good) != 0:
             print(f"Total mutations: {len(allm)}")
             print(f"Good mutations: {len(good)}")
@@ -239,10 +262,10 @@ def main():
         ------------------------------------------------------------
         '''
         iterations = 1000
-        mean_agb, median_agb, deviation_agb, counter = launch(iterations=iterations,
-                                                              start=coils_t[0][1], finish=coils_t[-1][1],
-                                                              coil_2=coil_r, r_turn=r_turn,
-                                                              ro=ro, d=d, k_max=k_max)
+        mean_agb, median_agb, deviation_agb, times, counter = launch(iterations=iterations,
+                                                                     start=coils_t[0][1], finish=coils_t[-1][1],
+                                                                     coil_2=coil_r, r_turn=r_turn,
+                                                                     ro=ro, d=d, k_max=k_max)
 
         print(f"Average good mutation: {mean_agb[1]}")
         print(f"Average bad mutation: {mean_agb[2]}")
@@ -256,6 +279,7 @@ def main():
         print(f"Deviation bad mutation: {deviation_agb[2]}")
         print(f"Deviation all mutation: {deviation_agb[0]}\n")
 
+        print(f"Average time to find a value: {np.average(times)} sec.")
         print(f"Total iterations of running algorithms: {counter}")
 
 
