@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 
 from hill_climbing_optimization.functions import coupling_coefficient
@@ -88,19 +90,23 @@ def launch(iterations, coil_t, rt_turn, coil_r, rr_turn,  d):
     arr_good = np.array([])
     arr_bad = np.array([])
     arr_all = np.array([])
+    arr_time = np.array([])
     fit = []
 
     for _ in range(iterations):
-
+        # search time calculation
+        delta_t = time.time()
         coil_t1, coil_r1, k, allm, badm, goodm = next_ascent_hill_climbing(
             coil_1=coil_t, r1_turn=rt_turn,
             coil_2=coil_r, r2_turn=rr_turn,
             d=d
         )
+        delta_t = time.time() - delta_t
 
         arr_all = np.append(arr_all, allm)
         arr_good = np.append(arr_good, goodm)
         arr_bad = np.append(arr_bad, badm)
+        arr_time = np.append(arr_time, delta_t)
 
         fit.append((coil_t1, coil_r1, k))
 
@@ -113,8 +119,7 @@ def launch(iterations, coil_t, rt_turn, coil_r, rr_turn,  d):
     # and their corresponding coils
     fit_values = (min(fit, key=lambda x: x[2]), max(fit, key=lambda x: x[2]))
 
-    return fit_values, mean_agb, median_agb, deviation_agb
-
+    return fit_values, mean_agb, median_agb, deviation_agb, arr_time
 
 
 def main():
@@ -148,7 +153,7 @@ def main():
         ---------------------------------------------------------------------
         '''
         iterations = 1000
-        fit_values, mean_agb, median_agb, deviation_agb = launch(
+        fit_values, mean_agb, median_agb, deviation_agb, times = launch(
             iterations=iterations,
             coil_t=coil_t, rt_turn=r_turn,
             coil_r=coil_r, rr_turn=r_turn,
@@ -165,6 +170,8 @@ def main():
         print(f"Deviation good mutation: {deviation_agb[1]}")
         print(f"Deviation bad mutation: {deviation_agb[2]}")
         print(f"Deviation all mutation: {deviation_agb[0]}\n")
+
+        print(f"Average time to find a value: {np.average(times)} sec.\n")
 
         print(f"Max of couple coefficient: {fit_values[1][2]}\n"
               f"    for coil_t={fit_values[1][0]} м;\n"
