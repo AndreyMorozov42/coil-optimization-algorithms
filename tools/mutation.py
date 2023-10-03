@@ -8,15 +8,6 @@ def mutation(start, finish, x=None, r=0.005):
 
 
 def mutation_lb(start, finish, x=None, dr_min=0.001, dr_max=0.025):
-    """
-    Mutation of a value with a lower bound
-    :param start:
-    :param finish:
-    :param x:
-    :param dr_min:
-    :param dr_max:
-    :return:
-    """
     if x is None:
         res = np.random.uniform(start, finish)
     elif np.random.choice([-1, 1]) > 0:
