@@ -118,6 +118,16 @@ def launch(iterations, coil_t, rt_turn, coil_r, rr_turn,  d):
 
         fit.append((coil_t1, coil_r1, k))
 
+    # calculation of the ratio of the number of iterations
+    # that gave a larger coupling coefficient to the total number of iterations
+    k_max = max(fit, key=lambda x: x[2])[2]
+    n_k_max = 0
+    thr_equal = 0.14
+    for el in fit:
+        if np.abs((k_max - el[2]) / k_max) / k_max < thr_equal:
+            n_k_max += 1
+    ratio = n_k_max / len(fit)
+
     # calculate characteristics of series
     mean_agb = (np.average(arr_all), np.average(arr_good), np.average(arr_bad))
     median_agb = (np.median(arr_all), np.median(arr_good), np.mean(arr_bad))
@@ -127,7 +137,7 @@ def launch(iterations, coil_t, rt_turn, coil_r, rr_turn,  d):
     # and their corresponding coils
     fit_values = (min(fit, key=lambda x: x[2]), max(fit, key=lambda x: x[2]))
 
-    return fit_values, mean_agb, median_agb, deviation_agb, arr_time
+    return fit_values, mean_agb, median_agb, deviation_agb, arr_time, ratio
 
 
 
@@ -162,7 +172,7 @@ def main():
         ---------------------------------------------------------------------
         '''
         iterations = 1000
-        fit_values, mean_agb, median_agb, deviation_agb, times = launch(
+        fit_values, mean_agb, median_agb, deviation_agb, times, ratio = launch(
             iterations=iterations,
             coil_t=coil_t, rt_turn=r_turn,
             coil_r=coil_r, rr_turn=r_turn,
@@ -180,6 +190,7 @@ def main():
         print(f"Deviation bad mutation: {deviation_agb[2]}")
         print(f"Deviation all mutation: {deviation_agb[0]}\n")
 
+        print(f"N(kmax)/N = {ratio}")
         print(f"Average time to find a value: {np.average(times)} sec.")
 
         print(f"Max of couple coefficient: {fit_values[1][2]}\n"
