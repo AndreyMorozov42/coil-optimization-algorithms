@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 from hill_climbing_optimization.functions import coupling_coefficient
-from tools.mutation import mutation_lb
+from tools.mutation import mutation_lb, mutation_random
 
 
 def random_mutation_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
@@ -58,9 +58,16 @@ def random_mutation_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
         if ind // len(coil_1) == 0 and ind != 0 and (ind + 1) != len(coil_1):
             coil_1q = coil_1.copy()
 
-            coil_1q[ind] = mutation_lb(start=coil_1q[ind - 1] + 2 * r1_turn,
-                                       finish=coil_1q[ind + 1] - 2 * r1_turn,
-                                       x=coil_1q[ind].copy())
+            # old mutation
+            # coil_1q[ind] = mutation_lb(start=coil_1q[ind - 1] + 2 * r1_turn,
+            #                            finish=coil_1q[ind + 1] - 2 * r1_turn,
+            #                            x=coil_1q[ind].copy())
+
+            # new mutation
+            coil_1q[ind] = mutation_random(
+                start=coil_1q[ind - 1] + 2 * r1_turn,
+                finish=coil_1q[ind + 1] - 2 * r1_turn,
+            )
 
             fit_kq = coupling_coefficient(coil_1=coil_1q, r1_turn=r1_turn,
                                           coil_2=coil_2, r2_turn=r2_turn,
@@ -69,9 +76,16 @@ def random_mutation_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
         elif ind // len(coil_1) == 1 and ind != len(coil_1) and ind != (len(coil_2) + len(coil_1) - 1):
             coil_2q = coil_2.copy()
 
-            coil_2q[ind - len(coil_1)] = mutation_lb(start=coil_2q[ind - len(coil_1) - 1] + 2 * r2_turn,
-                                                     finish=coil_2q[ind - len(coil_1) + 1] - 2 * r2_turn,
-                                                     x=coil_2q[ind - len(coil_1)].copy())
+            # old mutation
+            # coil_2q[ind - len(coil_1)] = mutation_lb(start=coil_2q[ind - len(coil_1) - 1] + 2 * r2_turn,
+            #                                          finish=coil_2q[ind - len(coil_1) + 1] - 2 * r2_turn,
+            #                                          x=coil_2q[ind - len(coil_1)].copy())
+
+            # new mutation
+            coil_2q[ind - len(coil_1)] = mutation_random(
+                start=coil_2q[ind - len(coil_1) - 1] + 2 * r2_turn,
+                finish=coil_2q[ind - len(coil_1) + 1] - 2 * r2_turn,
+            )
 
             fit_kq = coupling_coefficient(coil_1=coil_1, r1_turn=r1_turn,
                                           coil_2=coil_2q, r2_turn=r2_turn,
