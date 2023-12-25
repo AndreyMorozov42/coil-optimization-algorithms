@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from tools.mutual_inductance import mutual_inductance
 from tools.coupling_coefficient import coupling_coefficient
-from tools.mutation import mutation_lb
+from tools.mutation import mutation_lb, mutation_random
 
 
 def show_plot(x, y, x_label="x", y_label="y", title=None):
@@ -30,7 +30,10 @@ def hill_climbing(start, finish, coil_1, coil_2, r_turn, ro, d):
     thr = 1e-3
 
     # mutate coil
-    coil_1[2] = mutation_lb(start, finish)
+    # coil_1[2] = mutation_lb(start, finish)
+    # new mutation
+    coil_1[2] = mutation_random(start, finish)
+
     fit_k = coupling_coefficient(coil_1=coil_1, coil_2=coil_2, r_turn=r_turn, ro=ro, d=d)
 
     print(f"Initial Coupling coefficient {fit_k} for coils:\n"
@@ -42,7 +45,10 @@ def hill_climbing(start, finish, coil_1, coil_2, r_turn, ro, d):
     i += 1
 
     coil_1q = coil_1.copy()
-    coil_1q[2] = mutation_lb(start, finish, x=coil_1[2].copy())
+    # coil_1q[2] = mutation_lb(start, finish, x=coil_1[2].copy())
+    # new function mutation
+    coil_1q[2] = mutation_random(start, finish)
+
     fit_kq = coupling_coefficient(coil_1=coil_1q, coil_2=coil_2, r_turn=r_turn, ro=ro, d=d)
 
     # save the mutation
@@ -63,7 +69,9 @@ def hill_climbing(start, finish, coil_1, coil_2, r_turn, ro, d):
             # save the bad mutation
             bad_mutation.append((coil_1q[2].copy(), fit_kq.copy()))
 
-        coil_1q[2] = mutation_lb(start, finish, x=coil_1[2])
+        # coil_1q[2] = mutation_lb(start, finish, x=coil_1[2])
+        # new function mutation
+        coil_1q[2] = mutation_random(start, finish)
         fit_kq = coupling_coefficient(coil_1=coil_1q, coil_2=coil_2, r_turn=r_turn, ro=ro, d=d)
 
         # save the mutation
