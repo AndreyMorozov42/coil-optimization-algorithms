@@ -2,7 +2,7 @@ import time
 import numpy as np
 
 from hill_climbing_optimization.functions import coupling_coefficient
-from tools.mutation import mutation_lb
+from tools.mutation import mutation_lb, mutation_random
 
 
 def steepest_ascent_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
@@ -51,9 +51,16 @@ def steepest_ascent_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
             if ind // len(coil_1) == 0 and ind != 0 and (ind + 1) != len(coil_1):
                 coil_1q = coil_1.copy()
 
+                # old mutation
                 coil_1q[ind] = mutation_lb(start=coil_1q[ind - 1] + 2 * r1_turn,
                                            finish=coil_1q[ind + 1] - 2 * r1_turn,
                                            x=coil_1q[ind].copy())
+
+                # new mutation
+                coil_1q[ind] = mutation_random(
+                    start=coil_1q[ind - 1] + 2 * r1_turn,
+                    finish=coil_1q[ind + 1] - 2 * r1_turn,
+                )
 
                 fit_kq = coupling_coefficient(coil_1=coil_1q, r1_turn=r1_turn,
                                               coil_2=coil_2, r2_turn=r2_turn,
@@ -64,9 +71,16 @@ def steepest_ascent_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
             elif ind // len(coil_1) == 1 and ind != len(coil_1) and ind != (len(coil_2) + len(coil_1) - 1):
                 coil_2q = coil_2.copy()
 
-                coil_2q[ind - len(coil_1)] = mutation_lb(start=coil_2q[ind - len(coil_1) - 1] + 2 * r2_turn,
-                                           finish=coil_2q[ind - len(coil_1) + 1] - 2 * r2_turn,
-                                           x=coil_2q[ind - len(coil_1)].copy())
+                # old mutation
+                # coil_2q[ind - len(coil_1)] = mutation_lb(start=coil_2q[ind - len(coil_1) - 1] + 2 * r2_turn,
+                #                                          finish=coil_2q[ind - len(coil_1) + 1] - 2 * r2_turn,
+                #                                          x=coil_2q[ind - len(coil_1)].copy())
+
+                # new mutation
+                coil_2q[ind - len(coil_1)] = mutation_random(
+                    start=coil_2q[ind - len(coil_1) - 1] + 2 * r2_turn,
+                    finish=coil_2q[ind - len(coil_1) + 1] - 2 * r2_turn,
+                )
 
                 fit_kq = coupling_coefficient(coil_1=coil_1, r1_turn=r1_turn,
                                               coil_2=coil_2q, r2_turn=r2_turn,
@@ -90,10 +104,10 @@ def steepest_ascent_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
 
     print(f"Stop at {i} iterations\n")
 
-    return coil_1.copy(), coil_2.copy(), fit_k,  all_mutation, bad_mutation, good_mutation
+    return coil_1.copy(), coil_2.copy(), fit_k, all_mutation, bad_mutation, good_mutation
 
 
-def launch(iterations, coil_t, rt_turn, coil_r, rr_turn,  d):
+def launch(iterations, coil_t, rt_turn, coil_r, rr_turn, d):
     # array of mutation counters
     arr_good = np.array([])
     arr_bad = np.array([])
@@ -140,10 +154,9 @@ def launch(iterations, coil_t, rt_turn, coil_r, rr_turn,  d):
     return fit_values, mean_agb, median_agb, deviation_agb, arr_time, ratio
 
 
-
 def main():
-    coil_t = np.linspace(0.02, 0.05, 4)     # transmitting coil
-    coil_r = np.linspace(0.03, 0.09, 4)     # receiving coil
+    coil_t = np.linspace(0.02, 0.05, 4)  # transmitting coil
+    coil_r = np.linspace(0.03, 0.09, 4)  # receiving coil
     r_turn = 0.0004  # radius of coil turns
 
     # distance

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from tools.mutual_inductance import mutual_inductance
 from tools.coupling_coefficient import coupling_coefficient
-from tools.mutation import mutation_lb
+from tools.mutation import mutation_lb, mutation_random
 
 
 def show_plot(x, y, x_label="x", y_label="y", title=None):
@@ -87,13 +87,12 @@ def launch(iterations, start, finish, coil_2, r_turn, ro, d, k_max):
 
 
 def hill_climbing(start, finish, coil_2, r_turn, ro, d):
-
     # arrays for storing mutation values
     all_mutation = []
     good_mutation = []
     bad_mutation = []
 
-    i = 0                   # iteration counter
+    i = 0  # iteration counter
 
     # objective function increment threshold
     thr = 1e-3
@@ -111,7 +110,11 @@ def hill_climbing(start, finish, coil_2, r_turn, ro, d):
     all_mutation.append((coil_1[1].copy(), fit_k.copy()))
     i += 1
 
-    r12 = mutation_lb(start, finish, x=coil_1[1])
+    # # old function mutation
+    # r12 = mutation_lb(start, finish, x=coil_1[1])
+    # new function mutation
+    r12 = mutation_random(start, finish)
+
     coil_1q = np.array([0.4 * r12, r12])
     fit_kq = coupling_coefficient(coil_1=coil_1q, coil_2=coil_2, r_turn=r_turn, ro=ro, d=d)
 
@@ -134,7 +137,10 @@ def hill_climbing(start, finish, coil_2, r_turn, ro, d):
             bad_mutation.append((coil_1q[1].copy(), fit_kq.copy()))
 
         # mutate the coil
-        r12 = mutation_lb(start, finish, x=coil_1[1])
+        # old mutation function
+        # r12 = mutation_lb(start, finish, x=coil_1[1])
+        # new mutation function
+        r12 = mutation_random(start, finish)
         coil_1q = np.array([0.4 * r12, r12])
         fit_kq = coupling_coefficient(coil_1=coil_1q, coil_2=coil_2, r_turn=r_turn, ro=ro, d=d)
 
@@ -152,15 +158,14 @@ def hill_climbing(start, finish, coil_2, r_turn, ro, d):
     return all_mutation, good_mutation, bad_mutation
 
 
-
 def main():
-    coil_r = np.array([0.02, 0.05])                         # receiving coil
+    coil_r = np.array([0.02, 0.05])  # receiving coil
 
     coil_t = np.array([0.4 * np.linspace(0.01, 0.1, 50)]).T
     coil_tl = np.array([np.linspace(0.01, 0.1, 50)]).T
-    coils_t = np.round(np.hstack([coil_t, coil_tl]), 3)     # transmitting coils
+    coils_t = np.round(np.hstack([coil_t, coil_tl]), 3)  # transmitting coils
 
-    r_turn = 0.0004     # radius of coil turns
+    r_turn = 0.0004  # radius of coil turns
 
     # distance
     d = 0.01
@@ -240,7 +245,6 @@ def main():
         # show_climbing(x=coils_t.T[1] * 1e2, y=k, x_label="R22, cм", y_label="k",
         #               bad_points=[(b[0] * 1e2, b[1]) for b in bad])
 
-
         if len(good) != 0:
             print(f"Total mutations: {len(allm)}")
             print(f"Good mutations: {len(good)}")
@@ -285,4 +289,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

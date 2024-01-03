@@ -17,3 +17,14 @@ def mutation_lb(start, finish, x=None, dr_min=0.001, dr_max=0.025):
         res = np.random.uniform(low=start if x-dr_min < start else x-dr_min,
                                 high=start if x-dr_max < start else x-dr_max)
     return np.round(res, 3)
+
+
+def mutation_random(start, finish):
+    """
+    Random mutation within a range without restrictions
+    :param start: starting range value
+    :param finish: end value of range
+    :return:
+    """
+    return start + np.round((finish - start) * np.random.random(), 3)
+
