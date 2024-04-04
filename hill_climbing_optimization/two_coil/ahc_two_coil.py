@@ -31,14 +31,14 @@ def adaptive_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
 
     # probability of mutation
     # rm = np.random.random()
-    rm = 0.5
+    rm = 0.1
 
     i = 0           # iteration counter
     limit = 1000
 
     while (np.array_equal(coil_1, coil_1q)
            or np.array_equal(coil_2, coil_2q)
-           or np.abs(fit_kq - fit_k) > thr) and i != limit:
+           or np.abs((fit_kq - fit_k) / fit_k) > thr) and i != limit:
 
         i += 1
 

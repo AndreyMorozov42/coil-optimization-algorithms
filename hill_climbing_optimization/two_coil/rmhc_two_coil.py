@@ -41,7 +41,7 @@ def random_mutation_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
     i = 0  # iteration counter
     limit = 1000
 
-    while np.abs(fit_kq - fit_k) > thr and i != limit:
+    while np.abs((fit_kq - fit_k) / fit_k) > thr and i != limit:
         i += 1
 
         if fit_kq > fit_k:
