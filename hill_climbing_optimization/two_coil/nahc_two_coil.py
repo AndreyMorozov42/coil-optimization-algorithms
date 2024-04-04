@@ -128,7 +128,7 @@ def launch(iterations, coil_t, rt_turn, coil_r, rr_turn,  d):
     # that gave a larger coupling coefficient to the total number of iterations
     k_max = max(fit, key=lambda x: x[2])[2]
     n_k_max = 0
-    thr_equal = 0.14
+    thr_equal = 0.1
     for el in fit:
         if np.abs((k_max - el[2]) / k_max) / k_max < thr_equal:
             n_k_max += 1
