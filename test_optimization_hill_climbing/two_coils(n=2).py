@@ -2,6 +2,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
+from tools.calc_threshold import calc_threshold
 from tools.mutual_inductance import mutual_inductance
 from tools.coupling_coefficient import coupling_coefficient
 from tools.mutation import mutation_lb, mutation_random
@@ -122,7 +123,7 @@ def hill_climbing(start, finish, coil_2, r_turn, ro, d):
     all_mutation.append((coil_1[1].copy(), fit_k.copy()))
     i += 1
 
-    while np.abs(fit_kq - fit_k) >= thr and i != 1000:
+    while np.abs(fit_kq - fit_k) / fit_k >= thr and i != 1000:
         i += 1
         # print(f"Algorithm iteration: {i}")
 
@@ -139,6 +140,7 @@ def hill_climbing(start, finish, coil_2, r_turn, ro, d):
         # mutate the coil
         # old mutation function
         # r12 = mutation_lb(start, finish, x=coil_1[1])
+
         # new mutation function
         r12 = mutation_random(start, finish)
         coil_1q = np.array([0.4 * r12, r12])
@@ -161,8 +163,10 @@ def hill_climbing(start, finish, coil_2, r_turn, ro, d):
 def main():
     coil_r = np.array([0.02, 0.05])  # receiving coil
 
-    coil_t = np.array([0.4 * np.linspace(0.01, 0.1, 50)]).T
-    coil_tl = np.array([np.linspace(0.01, 0.1, 50)]).T
+    d_min_wire = 0.001      # minimum possible distance between turns
+
+    coil_t = np.array([0.4 * np.linspace(0.01, 0.1, int((0.1-0.01) / d_min_wire))]).T
+    coil_tl = np.array([np.linspace(0.01, 0.1, int((0.1-0.01) / d_min_wire))]).T
     coils_t = np.round(np.hstack([coil_t, coil_tl]), 3)  # transmitting coils
 
     r_turn = 0.0004  # radius of coil turns
@@ -179,6 +183,10 @@ def main():
         m[ind_c] = mutual_inductance(coil_1=coil_t, coil_2=coil_r, d=d, ro=ro)
         k[ind_c] = coupling_coefficient(coil_1=coil_t, coil_2=coil_r, r_turn=r_turn, d=d)
 
+    # calculate the minimum possible threshold value that occurs when the wire is displaced by d_min_wire
+    thr_min = calc_threshold(k)
+    print(f"Calculation threshold: thr_min={thr_min}\n")
+
     # show the maximum value of mutual inductance
     # and the corresponding radius value
     m_max = np.max(m)
@@ -191,8 +199,8 @@ def main():
     r22_k_max = coils_t[np.argmax(k)][1]
     print(f"k_max = {k_max}, for R22 = {r22_k_max} м\n")
 
-    FLAG_SHOW_PLOT = False
-    FLAG_RUN_MULTIITER = True
+    FLAG_SHOW_PLOT = True
+    FLAG_RUN_MULTIITER = False
 
     if FLAG_SHOW_PLOT:
         '''
@@ -229,8 +237,8 @@ def main():
                             "\"Поиск восхождением к вершине\"",
                       good_points=good, bad_points=bad)
         show_climbing(x=coils_t.T[1], y=k, x_label="R22, м", y_label="k",
-                      title="Поиск максимума коэффициента связи алгоритмом\n "
-                            "\"Поиск восхождением к вершине\"",
+                      # title="Поиск максимума коэффициента связи алгоритмом\n "
+                      #       "\"Поиск восхождением к вершине\"",
                       good_points=good)
         show_climbing(x=coils_t.T[1], y=k, x_label="R22, м", y_label="k",
                       title="Поиск максимума коэффициента связи алгоритмом\n "

@@ -2,6 +2,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
+from tools.calc_threshold import calc_threshold
 from tools.mutual_inductance import mutual_inductance
 from tools.coupling_coefficient import coupling_coefficient
 from tools.mutation import mutation_lb, mutation_random
@@ -55,7 +56,7 @@ def hill_climbing(start, finish, coil_1, coil_2, r_turn, ro, d):
     all_mutation.append((coil_1q[2].copy(), fit_kq.copy()))
     i += 1
 
-    while np.abs(fit_kq - fit_k) >= thr and i != 1000:
+    while np.abs(fit_kq - fit_k) / fit_k >= thr and i != 1000:
         i += 1
         # print(f"Algorithm iteration: {i}")
 
@@ -161,10 +162,13 @@ def main():
     coil_r = np.linspace(0.02, 0.05, 4)      # receiving coil
 
     r_turn = 0.0004     # radius of coil turns
+    d_min_wire = 0.001  # minimum possible distance between turns
 
     # transmitting coils
-    coils_t = np.linspace(0.03, 0.09, 4) + np.zeros((50, 4))
-    coils_t.T[2] = np.linspace(coils_t[0][1] + 2 * r_turn, coils_t[0][3] - 2 * r_turn, 50)
+    coil_t = np.linspace(0.03, 0.09, 4)
+    rate = int((coil_t[3] - coil_t[1]) / d_min_wire)
+    coils_t = np.linspace(0.03, 0.09, 4) + np.zeros((rate, 4))
+    coils_t.T[2] = np.linspace(coils_t[0][1] + 2 * r_turn, coils_t[0][3] - 2 * r_turn, rate)
     coils_t = np.round(coils_t, 3)
 
     # distance
@@ -179,8 +183,12 @@ def main():
         m[ind_c] = mutual_inductance(coil_1=coil_t, coil_2=coil_r, d=d, ro=ro)
         k[ind_c] = coupling_coefficient(coil_1=coil_t, coil_2=coil_r, r_turn=r_turn, d=d)
 
+    # calculate the minimum possible threshold value that occurs when the wire is displaced by d_min_wire
+    thr_min = calc_threshold(k)
+    print(f"Calculation threshold: thr_min={thr_min}\n")
+
     FLAG_SHOW_PLOT = True
-    FLAG_RUN_MULTIITER = True
+    FLAG_RUN_MULTIITER = False
 
     # show the maximum value of mutual inductance
     # and the corresponding radius value
@@ -236,8 +244,8 @@ def main():
                             "\"Поиск восхождением к вершине\"",
                       good_points=good, bad_points=bad)
         show_climbing(x=coils_t.T[2], y=k, x_label="R23, м", y_label="k",
-                      title="Поиск максимума коэффициента связи алгоритмом\n "
-                            "\"Поиск восхождением к вершине\"",
+                      # title="Поиск максимума коэффициента связи алгоритмом\n "
+                      #       "\"Поиск восхождением к вершине\"",
                       good_points=good)
         show_climbing(x=coils_t.T[2], y=k, x_label="R23, м", y_label="k",
                       title="Поиск максимума коэффициента связи алгоритмом\n "

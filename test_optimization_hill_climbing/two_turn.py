@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+from tools.calc_threshold import calc_threshold
 from tools.mutual_inductance import mutual_inductance
 from tools.coupling_coefficient import coupling_coefficient
 from tools.mutation import mutation_lb, mutation_random
@@ -37,13 +38,12 @@ def show_climbing(x, y, x_label="x", y_label="y", title=None, good_points=None, 
 
 
 def hill_climbing(start, finish, coil_2, r_turn, ro, d):
-
     # arrays for storing mutation values
     all_mutation = []
     good_mutation = []
     bad_mutation = []
 
-    i = 0                   # iteration counter
+    i = 0  # iteration counter
 
     # objective function increment threshold
     thr = 1e-3
@@ -69,7 +69,7 @@ def hill_climbing(start, finish, coil_2, r_turn, ro, d):
     all_mutation.append((coil_1q.copy(), fit_kq.copy()))
     i += 1
 
-    while np.abs(fit_kq - fit_k) >= thr and i != 1000:
+    while np.abs(fit_kq - fit_k) / fit_k >= thr and i != 1000:
         i += 1
         # print(f"Algorithm iteration: {i}")
 
@@ -154,10 +154,12 @@ def launch(iterations, start, finish, coil_2, r_turn, ro, d, k_max):
 
 
 def main():
-    coil_r = np.array([0.028])                              # receiving coil
-    coils_t = np.round(np.linspace(0.02, 0.1, num=50), 3)   # transmitting coils
+    d_min_wire = 0.001  # minimum possible distance between turns
 
-    r_turn = 0.0004     # radius of coil turns
+    coil_r = np.array([0.028])  # receiving coil
+    coils_t = np.round(np.linspace(0.02, 0.1, num=int((0.1 - 0.02) / d_min_wire)), 3)  # transmitting coils
+
+    r_turn = 0.0004  # radius of coil turns
 
     # distance
     d = 0.01
@@ -171,8 +173,12 @@ def main():
         m[ind_r] = mutual_inductance(coil_1=coil_t, coil_2=coil_r, d=d, ro=ro)
         k[ind_r] = coupling_coefficient(coil_1=coil_t, coil_2=coil_r, r_turn=r_turn, d=d)
 
+    # calculate the minimum possible threshold value that occurs when the wire is displaced by d_min_wire
+    thr_min = calc_threshold(k)
+    print(f"Calculation threshold: thr_min={thr_min}\n")
+
     FLAG_SHOW_PLOT = False
-    FLAG_RUN_MULTIITER = True
+    FLAG_RUN_MULTIITER = False
 
     # show the maximum value of mutual inductance
     # and the corresponding radius value
@@ -204,7 +210,6 @@ def main():
                   x_label="R2, м", y_label="k",
                   title="Коэффициент связи двух витков")
 
-
     if not FLAG_RUN_MULTIITER:
         '''
         ------------------------------------------------------------
@@ -222,8 +227,8 @@ def main():
 
         show_climbing(x=coils_t, y=k,
                       x_label="R2, м", y_label="k",
-                      title="Поиск максимума коэффициента связи алгоритмом\n "
-                            "\"Поиск восхождением к вершине\"",
+                      # title="Поиск максимума коэффициента связи алгоритмом\n "
+                      #       "\"Поиск восхождением к вершине\"",
                       good_points=good)
 
         show_climbing(x=coils_t, y=k,
@@ -261,9 +266,9 @@ def main():
         '''
         iterations = 1000
         mean_agb, median_agb, deviation_agb, times, counter = launch(iterations=iterations,
-                                                                    start=coils_t[0], finish=coils_t[-1],
-                                                                    coil_2=coil_r, r_turn=r_turn,
-                                                                    ro=ro, d=d, k_max=k_max)
+                                                                     start=coils_t[0], finish=coils_t[-1],
+                                                                     coil_2=coil_r, r_turn=r_turn,
+                                                                     ro=ro, d=d, k_max=k_max)
 
         print(f"Average good mutation: {mean_agb[1]}")
         print(f"Average bad mutation: {mean_agb[2]}")
