@@ -18,7 +18,7 @@ def show_plot(x, y, x_label="x", y_label="y", title=None):
     plt.show()
 
 
-def hill_climbing(start, finish, coil_1, coil_2, r_turn, ro, d):
+def hill_climbing(start, finish, coil_1, coil_2, r_turn, ro, d, thr=1e-3):
 
     # arrays for storing mutation values
     all_mutation = []
@@ -27,11 +27,12 @@ def hill_climbing(start, finish, coil_1, coil_2, r_turn, ro, d):
 
     i = 0                   # iteration counter
 
-    # objective function increment threshold
-    thr = 1e-3
+    # # objective function increment threshold
+    # thr = 1e-3
 
     # mutate coil
     # coil_1[2] = mutation_lb(start, finish)
+
     # new mutation
     coil_1[2] = mutation_random(start, finish)
 
@@ -108,7 +109,7 @@ def show_climbing(x, y, x_label="x", y_label="y", title=None, good_points=None, 
     plt.show()
 
 
-def launch(iterations, start, finish, coil_1, coil_2, r_turn, ro, d, k_max):
+def launch(iterations, start, finish, coil_1, coil_2, r_turn, ro, d, k_max, thr=1e-3):
     # array of mutation counters
     arr_good = np.array([])
     arr_bad = np.array([])
@@ -118,15 +119,18 @@ def launch(iterations, start, finish, coil_1, coil_2, r_turn, ro, d, k_max):
     # counter when the algorithm has not found the maximum
     failure = 0
 
-    # algorithm convergence criterion
-    thr = 1e-1
+    # # algorithm convergence criterion
+    # thr = 1e-1
 
     for _ in range(iterations):
 
         # search time calculation
         delta_t = time.time()
-        allm, good, bad = hill_climbing(start=start, finish=finish, coil_1=coil_1,
-                                        coil_2=coil_2, r_turn=r_turn, ro=ro, d=d)
+        allm, good, bad = hill_climbing(
+            start=start, finish=finish, coil_1=coil_1,
+            coil_2=coil_2, r_turn=r_turn, ro=ro, d=d,
+            thr=thr
+        )
         delta_t = time.time() - delta_t
 
         if len(good) != 0:
@@ -219,13 +223,6 @@ def main():
                   title="Коэффициент связи двух катушек индуктивности\n"
                         "(количество витков в каждой катушке - 4)")
 
-        # show_plot(x=coils_t.T[2] * 1e2, y=m * 1e6,
-        #           x_label="R23, cм", y_label="M, мкГн")
-        # show_plot(x=coils_t.T[2] * 1e2, y=k,
-        #           x_label="R23, cм", y_label="k")
-
-
-
     if not FLAG_RUN_MULTIITER:
         '''
         ------------------------------------------------------------
@@ -237,28 +234,21 @@ def main():
             start=coils_t[0][2] + 2 * r_turn, finish=coils_t[-1][2] - 2 * r_turn,
             coil_1=coil_t,
             coil_2=coil_r, r_turn=r_turn,
-            ro=ro, d=d
+            ro=ro, d=d,
+            thr=thr_min
         )
         show_climbing(x=coils_t.T[2], y=k, x_label="R23, м", y_label="k",
                       title="Поиск максимума коэффициента связи алгоритмом\n "
                             "\"Поиск восхождением к вершине\"",
                       good_points=good, bad_points=bad)
         show_climbing(x=coils_t.T[2], y=k, x_label="R23, м", y_label="k",
-                      # title="Поиск максимума коэффициента связи алгоритмом\n "
-                      #       "\"Поиск восхождением к вершине\"",
+                      title="Поиск максимума коэффициента связи алгоритмом\n "
+                            "\"Поиск восхождением к вершине\"",
                       good_points=good)
         show_climbing(x=coils_t.T[2], y=k, x_label="R23, м", y_label="k",
                       title="Поиск максимума коэффициента связи алгоритмом\n "
                             "\"Поиск восхождением к вершине\"",
                       bad_points=bad)
-
-        # show_climbing(x=coils_t.T[2] * 1e2, y=k, x_label="R23, cм", y_label="k",
-        #               good_points=[(g[0] * 1e2, g[1]) for g in good],
-        #               bad_points=[(b[0] * 1e2, b[1]) for b in bad])
-        # show_climbing(x=coils_t.T[2] * 1e2, y=k, x_label="R23, cм", y_label="k",
-        #               good_points=[(g[0] * 1e2, g[1]) for g in good])
-        # show_climbing(x=coils_t.T[2] * 1e2, y=k, x_label="R23, cм", y_label="k",
-        #               bad_points=[(b[0] * 1e2, b[1]) for b in bad])
 
         if len(good) != 0:
             print(f"Total mutations: {len(allm)}")
@@ -287,7 +277,8 @@ def main():
             finish=coils_t[-1][2] - 2 * r_turn,
             coil_1=coil_t,
             coil_2=coil_r, r_turn=r_turn,
-            ro=ro, d=d, k_max=k_max
+            ro=ro, d=d, k_max=k_max,
+            thr=thr_min
         )
 
         print(f"Average good mutation: {mean_agb[1]}")
