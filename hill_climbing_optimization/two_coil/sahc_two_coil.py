@@ -5,14 +5,14 @@ from hill_climbing_optimization.functions import coupling_coefficient
 from tools.mutation import mutation_lb, mutation_random
 
 
-def steepest_ascent_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
+def steepest_ascent_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d, thr=1e-3):
     # mutation counter
     all_mutation = 0
     good_mutation = 0
     bad_mutation = 0
 
     # objective function increment threshold
-    thr = 1e-3
+    # thr = 1e-3
 
     fit_k = coupling_coefficient(coil_1=coil_1, r1_turn=r1_turn,
                                  coil_2=coil_2, r2_turn=r2_turn,
@@ -107,7 +107,7 @@ def steepest_ascent_hill_climbing(coil_1, r1_turn, coil_2, r2_turn, d):
     return coil_1.copy(), coil_2.copy(), fit_k, all_mutation, bad_mutation, good_mutation
 
 
-def launch(iterations, coil_t, rt_turn, coil_r, rr_turn, d):
+def launch(iterations, coil_t, rt_turn, coil_r, rr_turn, d, thr=1e-3):
     # array of mutation counters
     arr_good = np.array([])
     arr_bad = np.array([])
@@ -159,6 +159,8 @@ def main():
     coil_r = np.linspace(0.03, 0.09, 4)  # receiving coil
     r_turn = 0.0004  # radius of coil turns
 
+    thr_min = 0.0013
+
     # distance
     d = 0.01
 
@@ -169,9 +171,10 @@ def main():
         Testing the algorithm for Steepest Ascent Hill Climbing in one run.
         --------------------------------------------------------------------
         '''
-        coil_t, coil_r, k, allm, badm, goodm = steepest_ascent_hill_climbing(coil_1=coil_t, r1_turn=r_turn,
-                                                                             coil_2=coil_r, r2_turn=r_turn,
-                                                                             d=d)
+        coil_t, coil_r, k, allm, badm, goodm = steepest_ascent_hill_climbing(
+            coil_1=coil_t, r1_turn=r_turn,
+            coil_2=coil_r, r2_turn=r_turn,
+            d=d, thr=thr_min)
 
         print(f"The resulting value of the coupling coefficient: k={k}\n"
               f"for coil_t={coil_t} м and coil_r={coil_r} м\n")
@@ -189,7 +192,7 @@ def main():
             iterations=iterations,
             coil_t=coil_t, rt_turn=r_turn,
             coil_r=coil_r, rr_turn=r_turn,
-            d=d)
+            d=d, thr=thr_min)
 
         print(f"Average good mutation: {mean_agb[1]}")
         print(f"Average bad mutation: {mean_agb[2]}")
